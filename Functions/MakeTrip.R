@@ -14,7 +14,7 @@
 #'
 
 MakeTrip<-function(tracks,ID="File",DistCutOff=10,Dist2Colony="Dist2Colony"){
-  Birds<-unique(data[[ID]])
+  Birds<-unique(tracks[[ID]])
 
   require("dplyr")
 
@@ -53,14 +53,16 @@ MakeTrip<-function(tracks,ID="File",DistCutOff=10,Dist2Colony="Dist2Colony"){
 
     # add a vector of NAs to BirdSub that will be populated with trip numbers
     BirdSub$TripNum<-NA
+
     # add a tripnumber "i" to all the events between the ith out and ith in
     for(i in 1:length(Out)){
       BirdSub$TripNum[Out[i]:In[i]]<-i
     }
     dataOut<-bind_rows(dataOut,BirdSub)
   }
+
   # if not on a trip (within distance to colony threshold) than give a 0
   dataOut$TripNum[is.na(dataOut$TripNum)]<-0
 
-  return(select(dataOut,-InColony))
+  return(dplyr::select(dataOut,-InColony))
 }

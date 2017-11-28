@@ -14,14 +14,14 @@
 # Calculate time between points in a timeseries
 #############################################################################################
 
-InterpointTime<-function(data=data,ID="File", DateTime="DateTime"){
+InterpointTime<-function(tracks=tracks,ID="File", DateTime="DateTime"){
   # Initialize a vector wehere the data will be dumped, for time differences.
   dataOut<-NULL
-  Birds<-unique(data[[ID]])
+  Birds<-unique(tracks[[ID]])
 
   # Run a for loop, where for each unique key, it subsets the data by that key and calculates the difference in time.
   for(i in 1:length(Birds)) {
-    Data<-data[data[[ID]]==Birds[i],]
+    Data<-tracks[tracks[[ID]]==Birds[i],]
     Data$PointDur<-NA
     Data$PointDur<-difftime(time1 = lead(Data[[DateTime]]),
                             time2 = Data[[DateTime]],

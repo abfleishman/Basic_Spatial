@@ -5,7 +5,7 @@
 #' @param tracks a dataframe
 #' @param ColonyLong a longitude value of length = 1
 #' @param ColonyLat a latitude value of length = 1
-#' @return a vector of bearings from adjacent points
+#' @return a vector of distances from adjacent points in meters
 #' @examples
 #' Dist2Colony( tracks=tracks, ColonyLat=56.22234,ColonyLong=-164.45922)
 #'
@@ -15,10 +15,10 @@ Dist2Colony<-function(tracks,ColonyLat,ColonyLong){
 
   # Step 4a: Calculate distance from each point to the San Jorge center point.
   Point2Colony<-vector(mode = "numeric",length = nrow(tracks))
-  for(i in 1:length(data$Latitude)){ #this is a for loop
+  for(i in 1:length(tracks$Latitude)){ #this is a for loop
     # This is a function to calculate distance between two points from the argosfilter package
     Point2Colony[i]<-distance(lat1 = ColonyLat,lon1 = ColonyLong ,lat2 = tracks$Latitude[i],lon2 = tracks$Longitude[i])
-    Point2Colony
+
   }
   return(Point2Colony)
 }

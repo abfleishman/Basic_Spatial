@@ -16,15 +16,15 @@
 #### Calculate the Distance between points on a track for each bird                      ####
 #### Vector of distances between points
 #############################################################################################
-InterpointDist<-function(data,ID="File",lat="Latitude",lon="Longitude"){
+InterpointDist<-function(tracks,ID="File",lat="Latitude",lon="Longitude"){
   # Step 1: Two packages for mapping.####
   library(argosfilter)
 
   # Step 4a: Calculate distance from each point to the San Jorge center point.
   dataOut<-NULL
-  Birds<-unique(data[[ID]])
+  Birds<-unique(tracks[[ID]])
   for(i in 1:length(Birds)){ #this is a for loop
-    Data<-data[data[[ID]]==Birds[i],]
+    Data<-tracks[tracks[[ID]]==Birds[i],]
     # This is a function to calculate distance between two points from the rgeos package
     InterpointDist<-c(NA,round(distanceTrack(lat = Data[[lat]],lon = Data[[lon]])*1000,digits=1))
     dataOut<-c(dataOut,InterpointDist)
