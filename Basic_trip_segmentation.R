@@ -9,6 +9,9 @@ library(maps)
 library(mapdata)
 library(dplyr)
 
+# load all the functions
+for(i in list.files("Functions/",full.names = T)) source(i)
+
 # Load tracks -------------------------------------------------------------
 # This should be one file for all the tracks or create a data.frame with all the tracks
 tracks<-read.csv("path/to/tracks.csv")
