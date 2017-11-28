@@ -2,7 +2,7 @@
 #'
 #' @author Abram B. Fleishman <abram.fleishman AT sjsu.edu>
 
-#' @param data a data frame with with latitude and longitude and colony site names
+#' @param tracks a data frame with with latitude and longitude and colony site names
 #' @param CaptureSitesData data with colony site names and colony lat long
 #' @param dataLon quoted name of column in data that has longitude values
 #' @param dataLat quoted name of column in data that has latitude values
@@ -13,16 +13,16 @@
 #' AddDist2Colony(data=data,CaptureSitesData=CapSitesSel,SiteName="SiteShort")
 #' @export
 
-AddDist2Colony<-function(data=data,CaptureSitesData=CapSitesSel,SiteName="SiteShort"){
-  dataOut<-vector(mode = "numeric",length = nrow(data))
-  Sites<-as.character(unique(data[[SiteName]]))
-  
+AddDist2Colony<-function(tracks=tracks,CaptureSitesData=CapSitesSel,SiteName="SiteShort"){
+  dataOut<-vector(mode = "numeric",length = nrow(tracks))
+  Sites<-as.character(unique(tracks[[SiteName]]))
+
   for(j in 1:length(Sites)){
 
     CapSub<-CapSitesSel[CapSitesSel[SiteName]==Sites[j],]
-    dataSub<-data[data[SiteName]==Sites[j],]
-    distanceVector<-Dist2Colony(data = dataSub,ColonyLat = CapSub$Lat,ColonyLong = CapSub$Lon)
-    dataOut[data[SiteName]==Sites[j]]<- distanceVector
+    dataSub<-tracks[tracks[SiteName]==Sites[j],]
+    distanceVector<-Dist2Colony(tracks = dataSub,ColonyLat = CapSub$Lat,ColonyLong = CapSub$Lon)
+    dataOut[tracks[SiteName]==Sites[j]]<- distanceVector
   }
   return(dataOut)
 }

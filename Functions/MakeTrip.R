@@ -2,17 +2,18 @@
 #' iThis is the File from the GypsyLocRead output
 #'
 #' @author Abram B. Fleishman <abram.fleishman AT sjsu.edu>
-#' @param data data.frame of data that you want to parse into trips
+#' @param tracks data.frame of data that you want to parse into trips
 #' @param ID quoted name of column in data that is a unique key to individual bird_tag_deployment combos. This is the File from the GypsyLocRead output
 #' @param DistCutOff Distance in km to use as a cut off radius around the colony to use to split the trips
 #' @param Dist2Colony quoted name of column in data that has the distance in km from each point to the colony
 #' @return A new data frame with all original data plus two new columns: TripNum (consecutive trip number 0 = at colony) and ColonyMovement (in/out colony movements)
 #' @examples
-#' MakeTrip(data,ID="File",DistCutOff=50,Dist2Colony="Dist2Colony")
+#'
+#' MakeTrip(tracks,ID="File",DistCutOff=50,Dist2Colony="Dist2Colony")
 #' @export
 #'
 
-MakeTrip<-function(data,ID="File",DistCutOff=10,Dist2Colony="Dist2Colony"){
+MakeTrip<-function(tracks,ID="File",DistCutOff=10,Dist2Colony="Dist2Colony"){
   Birds<-unique(data[[ID]])
 
   require("dplyr")
@@ -20,8 +21,8 @@ MakeTrip<-function(data,ID="File",DistCutOff=10,Dist2Colony="Dist2Colony"){
   dataOut<-NULL
   for(j in 1:length(Birds)){
     # Subset for each bird
-    BirdSub<-data[data[[ID]]==Birds[j],]
-    
+    BirdSub<-tracks[tracks[[ID]]==Birds[j],]
+
     # If distance to colony is less than DistCutOff m make it a 0 else make it a 1
     BirdSub$InColony<-ifelse(BirdSub[[Dist2Colony]]<DistCutOff,0,1)
 
@@ -36,7 +37,7 @@ MakeTrip<-function(data,ID="File",DistCutOff=10,Dist2Colony="Dist2Colony"){
     Out<-grep("Out",x = BirdSub$ColonyMovement)
 
     # If there is an "in" event get the indicies of the in events
-    if("In" %in% BirdSub$ColonyMovement){ 
+    if("In" %in% BirdSub$ColonyMovement){
       In<-grep("In",x = BirdSub$ColonyMovement)
       } else {
         In<-length(BirdSub$ColonyMovement)-1
