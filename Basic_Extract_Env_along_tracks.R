@@ -273,3 +273,75 @@ InBer<-over(tracksTemp,ber)
 
 # add a var to the tracks DF
 tracks$bs<-as.character(InBer$name)
+
+
+
+# load packages for downloading environmental vars ------------------------
+devtools::install_github('ropensci/rerddap')
+devtools::install_github('ropensci/plotdap')
+devtools::install_github("rmendels/rerddapXtracto")
+# library(xtractomatic)
+
+library(rerddapXtracto)
+# version()
+library(rerddap)
+
+# esrlNcepRe NCEP Reanalysis 1 --------------------------------------------
+
+SST<-info( "erdMBsstd8day")
+xtractomatic::searchData(searchList = "varname:sst")
+
+# ypos<-c(16,26)
+# xpos<-c(-162,-150)+360
+# tpos<-c("2017-04-24","2017-05-28")
+
+# Aqua on MODIS - CHL - monthly composites "2010-06-01","2017-04-15"
+erdMBsstd8day<-rxtracto_3D(dataInfo = SST,parameter = "sst",
+                           xcoord = c(-162,-150)+360,
+                           ycoord = c(16,26),
+                           zcoord = c(0.0,0.0),
+                           zName="altitude",
+                           tName = "time",
+                           tcoord = c("2017-04-24T00:00:00Z","2017-05-28T00:00:00Z"),
+                           urlbase = "http://coastwatch.pfeg.noaa.gov/erddap/",verbose = T,)
+str(erdMBsstd8day)
+
+library(raster)
+sst<-stack(x = 'sst.nc')
+names(sst)<-paste0("X",seq(as.Date("2017-04-24"),as.Date("2017-05-28"),1))
+
+tracks<-read_csv("~/Desktop/Olivias_data/")
+tracks<-data.frame(date=seq(as.Date("2017-04-24"),as.Date("2017-05-28"),1),lat=18,lon=-155+360)
+dates<-unique(tracks$date)
+# Loop to add sst and sst_g
+tracks$sst<-NA
+tracks$sst_g<-NA
+for(i in 1:length(dates)){
+  print(dates[i])
+  datex<-paste0("X",year(dates[i]),".",
+                str_pad(string = month(dates[i]),width = 2,pad = "0",side = "left"),".",
+                str_pad(string = day(dates[i]),width = 2,pad = "0",side = "left"))
+
+  pt<-data.frame(lon=tracks$lon[which(tracks$date==dates[i]&is.na(tracks$sst))],
+                 lat=tracks$lat[which(tracks$date==dates[i]&is.na(tracks$sst))])
+
+  coordinates(pt)<-cbind(tracks$lon[which(tracks$date==dates[i]&is.na(tracks$sst))],
+                         tracks$lat[which(tracks$date==dates[i]&is.na(tracks$sst))])
+  crs(pt)<-CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
+
+
+  pt_sp<-spTransform(pt,CRS("+proj=laea +lat_0=50 +lon_0=-180 +x_0=2500000 +y_0=1000000
+                             +ellps=WGS84 +units=m +no_defs"))
+
+  spol <- gBuffer(pt_sp, width=bufferM, byid=TRUE)
+
+  spdf <- SpatialPolygonsDataFrame(spol, data.frame(id=1:length(spol)), FALSE)
+  spdf <- spTransform(spdf,CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +lon_wrap=180"))
+
+  # sst
+  vx<- velox(sst[[datex]])
+  tracks$sst[which(tracks$date==dates[i])] <- vx$extract(spdf, fun=function(x)mean(x,na.rm=T))
+
+  vx<- velox(terrain(sst[[datex]],opt = "slope",neighbors = 8))
+  tracks$sst_g[which(tracks$date==dates[i])] <- vx$extract(spdf, fun=function(x)mean(x,na.rm=T))
+}
