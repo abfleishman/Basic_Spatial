@@ -8,7 +8,7 @@
 #' @param dataLat quoted name of column in data that has latitude values
 #' @param SiteName a quoted string indicating what the column houses your SiteNames.  Must be the same across both your data and the CaptureSitesData
 #' @param dataset a commented string indicating what dataset you are using (currently only works with a single variable)
-#' @return a ggplot map frame for the data to be ploted with
+#' @return vector of distances from each colony
 #' @examples
 #' AddDist2Colony(data=data,CaptureSitesData=CapSitesSel,SiteName="SiteShort")
 #' @export
