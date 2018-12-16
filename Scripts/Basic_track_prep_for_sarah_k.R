@@ -1,6 +1,11 @@
-# Script calculate distance from each point along a track to a fixed point (colony)
-# Also, a few other trip metrics
-#
+# Script to calculate:
+# - distance from each point along a track to a fixed point (colony)
+# - distance from each point  to a fixed feature like a shoreline,
+#   bathymetric feature (200m isobath), or any other line (ship track)
+# - distance between points on a track
+# - time between points on a track
+
+
 # For Sarah K. @ UCSC
 # Abram Fleishman
 # Updated 15 Dec 2018
@@ -15,6 +20,8 @@
 library(trakR)
 
 # Load tracks -------------------------------------------------------------
+
+
 # This should be one file for all the tracks or create a data.frame with all the tracks
 # tracks<-read.csv("path/to/tracks.csv")
 tracks<-readRDS("~/Dropbox (Personal)/RLKI/SGRK_processedDATA/GPS_RLKI_rawGPS_compiled_24Jun18.rda")
@@ -41,7 +48,9 @@ tracks$Dist2Col<-Dist2Colony(tracks = tracks,
 
 
 # Distance to Shore in m-------------------------------------------------------
+#
 # This can be used to fine the distance to any SpatialLinesDataFrame
+#
 # install.packages("marmap") #for bathymetry
 library(marmap)
 library(raster)
