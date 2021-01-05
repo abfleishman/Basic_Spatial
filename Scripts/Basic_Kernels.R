@@ -1,7 +1,7 @@
-# Basic ud and mapping
-# Abram Fleishman
-# 13 Oct 2017
-# Prepared for Olivia T. @ SJSU
+# Basic UD and mapping
+# Abram Fleishman & Morgan Gilmour
+# 4 Jan 2021
+# Prepared for Scott S. @ SJSU
 
 library(adehabitatHR)
 library(ggplot2)
@@ -13,13 +13,26 @@ library(dplyr)
 # This should be one file for all the tracks or create a data.frame with all the tracks
 tracks<-read.csv("path/to/tracks.csv")
 
-# Make the kernel for an individual track ---------------------------------
+# Make a kernel for an individual track ---------------------------------
 
 # Make a spatialPointsDataFrame from the tracking data
 tracks.spdf.ind <- SpatialPointsDataFrame(coords=as.data.frame(cbind(tracks$Longitude,tracks$Latitude)),
                                       data=data.frame(id=tracks$id),
                                       proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
 
+# Kernel analyses
+
+# Determine the smoothing parameter, h
+# Several options to determine the scale at which animals search.
+# 1) h can either be a default value from the function h="href";
+# 2) h can be determined via a least squares cross validation h="LSCV";
+# 3) h can be a numeric value determined by the user. Sometimes published studies
+# report the h-value that they used, and that can be used here.
+# 4) h can be determined via the function scaleARS()
+scale_animal<-scaleARS(DataGroup = tracks,Latitude = "Latitude",Longitude = "Longitude",
+                   ID = "tripID",TrackTime = "date")
+
+# 
 # This makes the UD
 ud_ind <- kernelUD(tracks.spdf.ind, h = "href")
 # These get out the polygons for the 25-95% utilization distributions
@@ -29,15 +42,15 @@ ud75 <- getverticeshr(ud_ind, percent=75, standardize=TRUE)
 ud95 <- getverticeshr(ud_ind, percent=95, standardize=TRUE)
 
 
-# Make the kernel for an the whole colony ----------------------------------
+# Make a kernel for the whole colony ----------------------------------
 
 # Make a spatialPointsDataFrame from the tracking data
 tracks.spdf <- SpatialPointsDataFrame(coords=as.data.frame(tracks$Longitude,
-                                                           tracks$Latitude), # coords= you position data
+                                                           tracks$Latitude), # coords= your location data (lat/long)
                                       data=data.frame(id=rep(1,length=length(tracks$Latitude))), # data is a single column of bird ids saying which points for to which birds
                                       proj4string = CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")) # proj4string# is the projection of the data
 
-# Make the kernel for an the whole colony
+# Make the kernel for the whole colony
 # # there are lots of different methods for smoothing and "href" is one.  You will have to figure out which to use
 ud_island <- kernelUD(tracks.spdf, h = "href")
 
@@ -54,21 +67,21 @@ w<-map_data("worldHires") # load map for ggplot
 
 # plot for individual trips ---------------------------------------------------
 uds<-bind_rows(
-  mutate(fortify(ud25), ud="25"),
+  mutate(fortify(ud25), ud="25"), #fortify() makes polygons of the UD objects so that they can be plotted with ggplot
   mutate(fortify(ud50), ud="50"),
   mutate(fortify(ud75), ud="75"),
   mutate(fortify(ud95), ud="95")
 ) %>% arrange(group,ud)
 
-p1<-ggplot(data=uds)+ facet_wrap(~group)+ # this make sub-plots for each bird
+p1<-ggplot(data=uds)+ facet_wrap(~group)+ # this makes sub-plots for each bird
   coord_fixed(xlim = c(-116,-113),ylim=c(30,32))+ # extent of your map (should be bigger than your furthest points in all dirs)
   geom_polygon(data=w,aes(long,lat,group=group),fill="black",color="black")+ # plots the islands and world
-  geom_polygon(data=uds %>% filter(ud=="95"),aes(x=long,y=lat,group=group,fill=ud),show.legend=T)+ #plots the uds\
-  geom_polygon(data=uds%>% filter(ud=="75"),aes(x=long,y=lat,group=group,fill=ud),show.legend=T)+ #plots the uds\
-  geom_polygon(data=uds%>% filter(ud=='50'),aes(x=long,y=lat,group=group,fill=ud),show.legend=T)+ #plots the uds\
-  geom_polygon(data=uds%>% filter(ud=="25"),aes(x=long,y=lat,group=group,fill=ud),show.legend=T)+ #plots the uds\
+  geom_polygon(data=uds %>% filter(ud=="95"),aes(x=long,y=lat,group=group,fill=ud),show.legend=T)+ #plots the uds
+  geom_polygon(data=uds%>% filter(ud=="75"),aes(x=long,y=lat,group=group,fill=ud),show.legend=T)+ #plots the uds
+  geom_polygon(data=uds%>% filter(ud=='50'),aes(x=long,y=lat,group=group,fill=ud),show.legend=T)+ #plots the uds
+  geom_polygon(data=uds%>% filter(ud=="25"),aes(x=long,y=lat,group=group,fill=ud),show.legend=T)+ #plots the uds
   scale_fill_grey()+
-  geom_point(aes(y=31,x=-114),pch=17,color="black",size=.8)+ # Plots you colony  location
+  geom_point(aes(y=31,x=-114),pch=17,color="black",size=.8)+ # Plots your colony  location
   annotate("text",x=-114,y=-31,label="San Jorge",color="black",size=6)+ #labels your colony
   theme_bw()
   #
@@ -86,7 +99,7 @@ p1<-ggplot()+
   geom_polygon(data=fortify(ud75_island),aes(x=long,y=lat,group=group),fill="grey50",show.legend=T)+
   geom_polygon(data=fortify(ud50_island),aes(x=long,y=lat,group=group),fill="grey75",show.legend=T)+
   geom_polygon(data=fortify(ud25_island),aes(x=long,y=lat,group=group),fill="grey95",show.legend=T)+
-  geom_point(aes(y=31,x=-114),pch=17,color="black",size=.8)+ # Plots you colony  location
+  geom_point(aes(y=31,x=-114),pch=17,color="black",size=.8)+ # Plots your colony  location
   annotate("text",x=-114,y=-31,label="San Jorge",color="black",size=6)+ #labels your colony
   theme_bw()#
 p1
